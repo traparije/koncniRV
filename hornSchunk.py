@@ -3,7 +3,7 @@ import numpy as np
 
 kernelAvg = np.array([[0, 1/4, 0],
                         [1/4,    0, 1/4],
-                        [0, 1/4, 0]], float)
+                        [0, 1/4, 0]], dtype=np.float32)
 
 kernelX = np.array([[-1, 1],
                         [-1, 1]])*(1/4)
@@ -32,14 +32,14 @@ def HornSchunck(I0,I1,lamb=0.1,Niter=9):
 
         #izracun odvodov
 
-        Ix=convolve(I0,kernelX) + convolve(I1,kernelX)
-        Iy=convolve(I0,kernelY) + convolve(I1,kernelY)
-        It=convolve(I0,kernelT) + convolve(I1,-kernelT)
+        Ix=convolve(I0,kernelX,mode='nearest') + convolve(I1,kernelX,mode='nearest')
+        Iy=convolve(I0,kernelY,mode='nearest') + convolve(I1,kernelY,mode='nearest')
+        It=convolve(I0,kernelT,mode='nearest') + convolve(I1,-kernelT,mode='nearest')
 
         #iteracije
         for _ in range(Niter):
-                uAvg=convolve(U,kernelAvg)
-                vAvg=convolve(V,kernelAvg)
+                uAvg=convolve(U,kernelAvg,mode='nearest')
+                vAvg=convolve(V,kernelAvg,mode='nearest')
 
                 alfa=(Ix*uAvg + Iy*vAvg + It)/(lamb**2 + Ix**2 +Iy**2)
 

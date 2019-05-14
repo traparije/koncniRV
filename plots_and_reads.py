@@ -75,8 +75,8 @@ def quiverOnImage(u, v, iImage, scale=3, step=5, iTitle=None):
     """
     makes quiver
     """
-    ax = plt.figure()
-    ax.imshow(iImage, cmap='gray', origin='lower')
+    ax = plt.figure().gca()
+    ax.imshow(iImage, cmap='gray', origin='upper')
     for i in range(0, u.shape[0], step):
         for j in range(0, v.shape[1], step):
             ax.arrow(j, i, v[i, j]*scale, u[i, j]*scale, color='red',
@@ -84,3 +84,4 @@ def quiverOnImage(u, v, iImage, scale=3, step=5, iTitle=None):
     if iTitle:
         ax.set_title(iTitle)
     plt.draw()
+    plt.show()
