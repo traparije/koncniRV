@@ -1,0 +1,7 @@
+Zapisek 1
+
+Aplikacije: Stabilizacija slike (kompenzacija gibanja roke)
+Višjanje ločljivosti videa pri interpolaciji
+Sledenje in razpoznavanje objektov (npr. avtomobilov na cesti)
+Nadzor (sledenje osebam)
+Za zaznavo gest v uporabniških vmesnikih.
