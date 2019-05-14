@@ -37,10 +37,12 @@ def HornSchunck(I0,I1,lamb=0.1,Niter=9):
         It=convolve(I0,kernelT) + convolve(I1,-kernelT)
 
         #iteracije
-        for znj in range(Niter):
+        for _ in range(Niter):
                 uAvg=convolve(U,kernelAvg)
                 vAvg=convolve(V,kernelAvg)
 
                 alfa=(Ix*uAvg + Iy*vAvg + It)/(lamb**2 + Ix**2 +Iy**2)
 
+                U=uAvg - Ix * alfa
+                V=vAvg - Iy * alfa
         return U, V
