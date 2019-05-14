@@ -54,3 +54,6 @@ def showImage(iImage, iTitle=''):
     plt.suptitle(iTitle) # nastavi naslov slike
     plt.xlabel('x')
     plt.ylabel('y')
+
+def readImgs(name,N):
+    im=
