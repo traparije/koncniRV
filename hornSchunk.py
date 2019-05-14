@@ -2,17 +2,17 @@ from scipy.ndimage.filters import convolve
 import numpy as np
 
 kernelAvg = np.array([[0, 1/4, 0],
-                   [1/4,    0, 1/4],
-                   [0, 1/4, 0]], float)
+                        [1/4,    0, 1/4],
+                        [0, 1/4, 0]], float)
 
 kernelX = np.array([[-1, 1],
-                    [-1, 1]])*(1/4)
+                        [-1, 1]])*(1/4)
 
 kernelY = np.array([[-1, -1],
-                    [1, 1]]) *(1/4)
+                        [1, 1]]) *(1/4)
 
 kernelT = np.array([[-1, -1],
-                    [1, 1]]) *(1/4)
+                        [1, 1]]) *(1/4)
 
 
 def HornSchunck(I0,I1,lamb=0.1,Niter=9):

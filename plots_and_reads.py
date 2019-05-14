@@ -4,7 +4,6 @@ import numpy
 import matplotlib.pyplot as plt
 import numpy as np
 import PIL.Image as im
-import matplotlib.pyplot as plt
 
 def convertToGray(image):
     dtype = image.dtype
@@ -29,11 +28,11 @@ def read_pgm(filename, byteorder='>'): #vir stackoverflow https://stackoverflow.
     except AttributeError:
         raise ValueError("Not a raw PGM file: '%s'" % filename)
 
-    return convertToGray(numpy.frombuffer(buffer,
+    return convertToGray(np.array(numpy.frombuffer(buffer,
                             dtype='u1' if int(maxval) < 256 else byteorder+'u2',
                             count=int(width)*int(height),
                             offset=len(header)
-                            ).reshape((int(height), int(width))))
+                            ).reshape((int(height), int(width))), dtype='float'))
 
 
 def showImage(iImage, iTitle=''):
@@ -67,10 +66,21 @@ def genImgsIntoArray(path_with_name,filetype,N):
     '''
     Generator za slike z diska  
     '''
-
-
     for znj in range(N):
         p="{}{}.{}".format(path_with_name,znj,filetype)
         slika = Image.open(p).convert('L') #sivinska slika
         yield np.array(slika,dtype=np.float32)
 
+def quiverOnImage(u, v, iImage, scale=3, step=5, iTitle=None):
+    """
+    makes quiver
+    """
+    ax = plt.figure()
+    ax.imshow(iImage, cmap='gray', origin='lower')
+    for i in range(0, u.shape[0], step):
+        for j in range(0, v.shape[1], step):
+            ax.arrow(j, i, v[i, j]*scale, u[i, j]*scale, color='red',
+                     head_width=0.5, head_length=1) #navadni quiverplot mi ni sluzil dobro, zato sem ga spisal na roke
+    if iTitle:
+        ax.set_title(iTitle)
+    plt.draw()
