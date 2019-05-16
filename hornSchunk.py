@@ -6,12 +6,12 @@ import numpy as np
 kernelAvg = np.array([[0, 1/4, 0],
                         [1/4,    0, 1/4],
                         [0, 1/4, 0]], dtype=np.float32)
-'''
-#predlagan s strani Horn- Schunck, redefiniram:
+
+#predlagan s strani Horn- Schunck, redefiniram (uposteva Neumanove robne pogoje sistema diff enačb):
 kernelAvg = np.array([[1/12, 1/6, 1/12],
                         [1/6,    0, 1/6],
                         [1/12, 1/6, 1/12]], dtype=np.float32)
-'''
+
 
 kernelX = np.array([[-1, 1],
                         [-1, 1]])*(1/4)
@@ -23,13 +23,13 @@ kernelT = np.array([[-1, -1],
                         [1, 1]]) *(1/4)
 
 def normalize(v):
-    norm = np.linalg.norm(v, axis=0)
-    x=v/norm
-    return np.where(np.isnan(x),0,x)
+        norm = np.linalg.norm(v, axis=0)
+
+        return np.where(v,v/norm,0)        #pazi 0/0 ! deli samo kjer je varno
 
 
 
-def HornSchunck(I0,I1,lamb=0.1,Niter=9):
+def HornSchunck(I0,I1,lamb=0.1,Niter=9,eps=0.0001):
         """
         I0: slika ob t=0
         I1: slika ob t=1
@@ -52,20 +52,27 @@ def HornSchunck(I0,I1,lamb=0.1,Niter=9):
         Iy=convolve(I0,kernelY,mode='nearest') + convolve(I1,kernelY,mode='nearest')
         It=convolve(I0,kernelT,mode='nearest') + convolve(I1,-kernelT,mode='nearest')
 
-        '''
-        #poskus upgrade (drugacna inicializacija)
+        
+        #poskus upgrade (drugacna inicializacija, normal flow oz. gradient flow kot baza za 1. približek)
 
-        U,V=-It*normalize(np.array([Ix,Iy]))/np.linalg.norm(np.array([Ix,Iy]), axis=0)
-        '''
+        U,V=np.where(np.linalg.norm(np.array([Ix,Iy]), axis=0), -It*normalize(np.array([Ix,Iy]))/np.linalg.norm(np.array([Ix,Iy]), axis=0), 0)
+        
 
 
         #iteracije
         for _ in range(Niter):
+                #rabim za hitrejso ustavitev
+                uOld=U
+                vOld=V
+
                 uAvg=convolve(U,kernelAvg,mode='nearest')
                 vAvg=convolve(V,kernelAvg,mode='nearest')
 
-                alfa=(Ix*uAvg + Iy*vAvg + It)/(lamb**2 + Ix**2 +Iy**2)
+                temp=(Ix*uAvg + Iy*vAvg + It)/(lamb**2 + Ix**2 +Iy**2)
 
-                U=uAvg - Ix * alfa
-                V=vAvg - Iy * alfa
+                U=uAvg - Ix * temp
+                V=vAvg - Iy * temp
+
+                if np.sum(np.square(U-uOld) - np.square(V-vOld))< np.size(U)*eps**2: #ustavitveni pogoj. Iteracije se ne splacajo vec, ker ni sprememb
+                        break
         return U, V
