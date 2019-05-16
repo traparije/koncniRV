@@ -1,9 +1,17 @@
 from scipy.ndimage.filters import convolve
 import numpy as np
 
+
+#avg po knjigi Klette
 kernelAvg = np.array([[0, 1/4, 0],
                         [1/4,    0, 1/4],
                         [0, 1/4, 0]], dtype=np.float32)
+'''
+#predlagan s strani Horn- Schunck, redefiniram:
+kernelAvg = np.array([[1/12, 1/6, 1/12],
+                        [1/6,    0, 1/6],
+                        [1/12, 1/6, 1/12]], dtype=np.float32)
+'''
 
 kernelX = np.array([[-1, 1],
                         [-1, 1]])*(1/4)
@@ -13,6 +21,12 @@ kernelY = np.array([[-1, -1],
 
 kernelT = np.array([[-1, -1],
                         [1, 1]]) *(1/4)
+
+def normalize(v):
+    norm = np.linalg.norm(v, axis=0)
+    x=v/norm
+    return np.where(np.isnan(x),0,x)
+
 
 
 def HornSchunck(I0,I1,lamb=0.1,Niter=9):
@@ -26,7 +40,9 @@ def HornSchunck(I0,I1,lamb=0.1,Niter=9):
         I0 = I0.astype(np.float32)
         I1 = I1.astype(np.float32)
 
-        #inicializacija U in V. Vzamem ničle
+
+
+        #inicializacija U in V. Vzamem ničle (vanilla)
         U = np.zeros([I0.shape[0], I0.shape[1]])
         V = np.zeros([I0.shape[0], I0.shape[1]])
 
@@ -35,6 +51,13 @@ def HornSchunck(I0,I1,lamb=0.1,Niter=9):
         Ix=convolve(I0,kernelX,mode='nearest') + convolve(I1,kernelX,mode='nearest')
         Iy=convolve(I0,kernelY,mode='nearest') + convolve(I1,kernelY,mode='nearest')
         It=convolve(I0,kernelT,mode='nearest') + convolve(I1,-kernelT,mode='nearest')
+
+        '''
+        #poskus upgrade (drugacna inicializacija)
+
+        U,V=-It*normalize(np.array([Ix,Iy]))/np.linalg.norm(np.array([Ix,Iy]), axis=0)
+        '''
+
 
         #iteracije
         for _ in range(Niter):

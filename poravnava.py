@@ -4,7 +4,7 @@ from PIL import Image
 from matplotlib.pyplot import hist2d
 from plots_and_reads import quiverOnImage
 import numpy as np
-oPar=[0,10]
+oPar=[0,2]
 imgFix = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/ulica.jpg').convert('L'), dtype=np.float32) #sivinska slika
 iImgMov = transformImage(imgFix, transAffine2D(iTrans = oPar))
 showImage(imgFix)
