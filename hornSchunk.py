@@ -25,7 +25,7 @@ kernelT = np.array([[-1, -1],
 def normalize(v):
         norm = np.linalg.norm(v, axis=0)
 
-        return np.where(v,v/norm,0)        #pazi 0/0 ! deli samo kjer je varno
+        return np.where(norm>0,v/norm,0)        #pazi 0/0 ! deli samo kjer je varno
 
 
 

@@ -1,6 +1,8 @@
 import numpy as np
 import scipy.ndimage as ni
 from scipy.ndimage.filters import convolve
+import scipy.interpolate as si
+
 def discreteGaussian2D(iSigma):
     U = int(2*np.ceil(3*iSigma) +1)
     V = U
@@ -11,6 +13,24 @@ def discreteGaussian2D(iSigma):
 
     return oKernel/np.sum(oKernel)
 
+#
+def bicubicInterpolateGrayImage( iImage, iCoorX, iCoorY, method,fill ):
+    dy, dx = iImage.shape
+    return si.interpn((np.arange(dy), np.arange(dx)), 
+                          iImage,
+                          (iCoorY,iCoorX),
+                          method=method,
+                          bounds_error=False,fill_value=fill).astype('uint8')
+
+def bicubicInterpolateColorImage( iImage, iCoorX, iCoorY, method ):
+    dy, dx, dz = iImage.shape
+    return si.interpn((np.arange(dy), np.arange(dx)), 
+                          iImage,
+                          (iCoorY,iCoorX),
+                          method=method,
+                          bounds_error=False).astype('uint8')
+
+
 def imageGradient( iImage ):
     """Gradient slike s Sobelovim operatorjem"""
     iImage = np.array( iImage, dtype='float' )    
@@ -19,8 +39,6 @@ def imageGradient( iImage ):
     oGy = ni.convolve( iImage, np.transpose( iSobel ), mode='nearest' )
     return oGx, oGy
 
-def bicubicInterp(I):
-    raise NotImplementedError()
 
 
 
@@ -35,11 +53,12 @@ def SORiteration(Au,Av,D,Du,Dv,U,V,alpha,w=1.9):
     uOld=U
     vOld=V
     #posodobiTok
-    U=(1-w)*uOld + w*(Au - D*V + alpha*uAvg)/Du
-    V=(1-w)*vOld + w*(Av - D*U + alpha*vAvg)/Dv
+    U=(1-w)*uOld + w*np.divide((Au - np.multiply(D,V) + alpha*uAvg),Du)
+    V=(1-w)*vOld + w*np.divide((Av - np.multiply(D,U) + alpha*vAvg),Dv)
 
     #napaka konvergence
-    np.square((U-uOld))-np.square((V-vOld))
+    error=np.square((U-uOld))+np.square((V-vOld))
+    return (error,U,V)
 
 
 
@@ -48,10 +67,30 @@ def HSOF(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter): #na eni skali
     I2x,I2y=imageGradient(I2)
     #iterativna aproksimacija (taylor)
     for n in range(Nwarps):
-        '''// warp the second image and its derivatives
-		bicubic_interpolation_warp(I2,  u, v, I2w,  nx, ny, true);
-		bicubic_interpolation_warp(I2x, u, v, I2wx, nx, ny, true);
-		bicubic_interpolation_warp(I2y, u, v, I2wy, nx, ny, true);'''
+
+        #warp (mogoče narobe računam!)
+        I2w=bicubicInterpolateGrayImage(I2,np.arange(0,nx-1),np.arange(0,ny-1),'cubic',0)
+        I2wx=bicubicInterpolateGrayImage(I2x,np.arange(0,nx-1),np.arange(0,ny-1),'cubic',0)
+        I2wy=bicubicInterpolateGrayImage(I2y,np.arange(0,nx-1),np.arange(0,ny-1),'cubic',0)
+        
+        I2wl=np.multiply(I2wx,U) + np.multiply(I2wy,V)
+        dif=I1-I2w+I2wl
+        Au=np.multiply(dif,I2wx)
+        Av=np.multiply(dif,I2wy)
+        Du=np.square(I2wx)+alpha**2
+        Dv=np.square(I2wy)+alpha**2
+        D=np.multiply(I2wx+I2wy)
+
+        #SOR iteracije
+        niter=0
+        error=1000
+        while(error>eps and niter <maxiter):
+
+            niter+=1
+            error,U,V=SORiteration(Au,Av,D,Du,Dv,U,V,alpha**2)
+
+
+
 
 #mozno je razpoznati zamake na (1/nj)**(Nscale-1) pikslih. Pri defaultnih 0.5 nj in 5 Nscale, nam to da 16 px maneverskega prostora
 #NScales= -log(max_motion)/log(nj)+1
