@@ -88,9 +88,23 @@ def HSOF(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter): #na eni skali
 
             niter+=1
             error,U,V=SORiteration(Au,Av,D,Du,Dv,U,V,alpha**2)
+            error=np.sqrt(error,nx*ny)
 
 
-
+def normalize_images(I1,I2):
+    u1=np.amax(I1)
+    l1=np.amin(I1)
+    u2=np.amax(I2)
+    l2=np.amin(I2)
+    uabs=max(u1,u2)
+    labs=min(l1,l2)
+    den=uabs-labs
+    if not(den>0):
+        return I1,I2
+    else:
+        I1=255*(I1-labs*np.ones(I1.shape))/den
+        I2=255*(I2-labs*np.ones(I2.shape))/den
+        return I1, I2
 
 #mozno je razpoznati zamake na (1/nj)**(Nscale-1) pikslih. Pri defaultnih 0.5 nj in 5 Nscale, nam to da 16 px maneverskega prostora
 #NScales= -log(max_motion)/log(nj)+1
