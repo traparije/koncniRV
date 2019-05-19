@@ -55,7 +55,7 @@ def HornSchunck(I0,I1,lamb=0.1,Niter=9,eps=0.0001):
         
         #poskus upgrade (drugacna inicializacija, normal flow oz. gradient flow kot baza za 1. približek)
 
-        U,V=np.where(np.linalg.norm(np.array([Ix,Iy]), axis=0), -It*normalize(np.array([Ix,Iy]))/np.linalg.norm(np.array([Ix,Iy]), axis=0), 0)
+        #U,V=np.where(np.linalg.norm(np.array([Ix,Iy]), axis=0), -It*normalize(np.array([Ix,Iy]))/np.linalg.norm(np.array([Ix,Iy]), axis=0), 0)
         
 
 

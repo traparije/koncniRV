@@ -9,10 +9,11 @@ from horn_schunck_piramida import HSpiramida
 oPar=[1,2]
 imgFix = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/ulica.jpg').convert('L'), dtype=np.float32) #sivinska slika
 iImgMov = transformImage(imgFix, transAffine2D(iTrans = oPar))
-showImage(imgFix)
-showImage(iImgMov)
+#showImage(imgFix)
+#showImage(iImgMov)
 #u,v=HornSchunck(imgFix,iImgMov,0.2,9)
 u,v=HSpiramida(imgFix,iImgMov)
+print('u',u)
 quiverOnImage(u,v,imgFix)
 print(((np.amin(v),np.amax(v)),(np.amin(u),np.amax(u))))
 hist2d(v.flatten(),u.flatten(),bins=(100,100), range=((-5,5),(-5,5)))

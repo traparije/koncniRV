@@ -3,6 +3,9 @@ import scipy.ndimage as ni
 from scipy.ndimage.filters import convolve
 import scipy.interpolate as si
 import cv2
+from funkcije import showImage
+
+
 
 def discreteGaussian2D(iSigma):
     U = int(2*np.ceil(3*iSigma) +1)
@@ -47,10 +50,10 @@ def imageGradient( iImage ):
 kernelAvg = np.array([[1/12, 1/6, 1/12],
                         [1/6,    0, 1/6],
                         [1/12, 1/6, 1/12]], dtype=np.float32)
-def SORiteration(Au,Av,D,Du,Dv,U,V,alpha,w=1.9):
+def SORiteration1(Au,Av,D,Du,Dv,U,V,alpha,w=1.9):
     #parameter SOR
-    uAvg=convolve(kernelAvg,U)
-    vAvg=convolve(kernelAvg,V)
+    uAvg=convolve(U,kernelAvg)
+    vAvg=convolve(V,kernelAvg)
     uOld=U
     vOld=V
     #posodobiTok
@@ -63,34 +66,35 @@ def SORiteration(Au,Av,D,Du,Dv,U,V,alpha,w=1.9):
 
 
 
-def HSOF(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter): #na eni skali
-    size=nx*ny
-    I2x,I2y=imageGradient(I2)
-    #iterativna aproksimacija (taylor)
-    for n in range(Nwarps):
+def HSOF1(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter): #na eni skali
+        size=nx*ny
+        I2x,I2y=imageGradient(I2)
+        #iterativna aproksimacija (taylor)
+        print('start')
+        for n in range(Nwarps):
+                print('start')
+                #warp (mogoče narobe računam!)
+                I2w=bicubicInterpolateGrayImage(I2,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)#popravi!!! mora biti bikubična
+                I2wx=bicubicInterpolateGrayImage(I2x,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)
+                I2wy=bicubicInterpolateGrayImage(I2y,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)
 
-        #warp (mogoče narobe računam!)
-        I2w=bicubicInterpolateGrayImage(I2,np.arange(0,nx-1),np.arange(0,ny-1),'cubic',0)
-        I2wx=bicubicInterpolateGrayImage(I2x,np.arange(0,nx-1),np.arange(0,ny-1),'cubic',0)
-        I2wy=bicubicInterpolateGrayImage(I2y,np.arange(0,nx-1),np.arange(0,ny-1),'cubic',0)
-        
-        I2wl=np.multiply(I2wx,U) + np.multiply(I2wy,V)
-        dif=I1-I2w+I2wl
-        Au=np.multiply(dif,I2wx)
-        Av=np.multiply(dif,I2wy)
-        Du=np.square(I2wx)+alpha**2
-        Dv=np.square(I2wy)+alpha**2
-        D=np.multiply(I2wx+I2wy)
+                I2wl=np.multiply(I2wx,U) + np.multiply(I2wy,V)
+                dif=I1-I2w+I2wl
+                Au=np.multiply(dif,I2wx)
+                Av=np.multiply(dif,I2wy)
+                Du=np.square(I2wx)+alpha**2
+                Dv=np.square(I2wy)+alpha**2
+                D=np.multiply(I2wx+I2wy)
 
-        #SOR iteracije
-        niter=0
-        error=1000
-        while(error>eps and niter <maxiter):
+                #SOR iteracije
+                niter=0
+                error=1000
+                while(error>eps and niter <maxiter):
 
-            niter+=1
-            error,U,V=SORiteration(Au,Av,D,Du,Dv,U,V,alpha**2)
-            error=np.sqrt(error,nx*ny)
-        
+                        niter+=1
+                        error,U,V=SORiteration(Au,Av,D,Du,Dv,U,V,alpha**2)
+                        error=np.sqrt(error,nx*ny)
+                
         return error,U,V
 
 
@@ -119,15 +123,14 @@ def HSpiramida(I1,I2,alpha=15,eps=0.0001,nj=0.5, nScales=5, nWarps=5,maxiter=100
         Us=[0 for i in range(nScales)]#ustvarim pravilno velik prazen seznam
         Vs=[0 for i in range(nScales)]#ustvarim pravilno velik prazen seznam
         I1s[0],I2s[0]=normalize_images(I1,I2)
+        
         #zgladim
         sigma0=0.6
         sigma = sigma0*np.sqrt(nj**(-2)-1)
         gaussKernel = discreteGaussian2D(sigma)
-        I1s[0]=convolve(gaussKernel,I1s[0])
-        I2s[0]=convolve(gaussKernel,I2s[0])
-
-
-
+        I1s[0]=convolve(I1s[0],gaussKernel)
+        I2s[0]=convolve(I2s[0],gaussKernel)
+        showImage(I1s[0])
 
         #inicializiram slike različnih skal
         for s in range(1,nScales):
@@ -137,34 +140,36 @@ def HSpiramida(I1,I2,alpha=15,eps=0.0001,nj=0.5, nScales=5, nWarps=5,maxiter=100
                 prejdy,prejdx=I1s[s-1].shape
                 novdy=int(prejdy*nj+0.5)
                 novdx=int(prejdx*nj+0.5)
-
                 #iz opencv si sposodim resize za hitrost
-                I1s[s]=cv2.resize(I1s[s-1], dsize=(novdy,novdx), interpolation=cv2.INTER_CUBIC)
-                I2s[s]=cv2.resize(I2s[s-1], dsize=(novdy,novdx), interpolation=cv2.INTER_CUBIC)
+                I1s[s]=cv2.resize(I1s[s-1], dsize=(novdx,novdy), interpolation=cv2.INTER_CUBIC) #pazi, dsize je kot x,y!!!
+                I2s[s]=cv2.resize(I2s[s-1], dsize=(novdx,novdy), interpolation=cv2.INTER_CUBIC)
+                #  testing showImage(I1s[s]), zdaj dela
                 #po resizu še zgladim s sigma 0.6 gaussovim jedrom
-                I1s[s]=convolve(gaussKernel,I1s[s])
-                I2s[s]=convolve(gaussKernel,I2s[s])
+                I1s[s]=convolve(I1s[s],gaussKernel)
+                I2s[s]=convolve(I2s[s],gaussKernel)
 
         #inicializacija U in V
         U=np.zeros(I1s[nScales-1].shape)
         Us[nScales-1]=U
         V=np.zeros(I1s[nScales-1].shape)
         Vs[nScales-1]=V
-
+        print(U, nScales)
         #piramidna aproksimacija optičenga toka po Horn-Schuncku:
-        for s in range(nScales-1,-1,1):
+        for s in range(nScales-1,-1,-1):
                 e,Utemp,Vtemp=HSOF(I1s[s],I2s[s],Us[s],Vs[s],I1s[s].shape[1],I1s[s].shape[0],alpha,nWarps,eps,maxiter)
-
+                print("s in  Utemp",s, Utemp)
                 if s==0:  #za zadnji scale še poračunam potem pa ne več
                         break
                 #else: 
                 #upsample U in V
-                Us[s-1]=cv2.resize(Utemp, dsize=I1s[s-1].shape, interpolation=cv2.INTER_CUBIC)
-                Vs[s-1]=cv2.resize(Vtemp, dsize=I1s[s-1].shape, interpolation=cv2.INTER_CUBIC)
+                Us[s-1]=cv2.resize(Utemp, dsize=(I1s[s-1].shape[1],I1s[s-1].shape[0]), interpolation=cv2.INTER_CUBIC)
+                Vs[s-1]=cv2.resize(Vtemp, dsize=(I1s[s-1].shape[1],I1s[s-1].shape[0]), interpolation=cv2.INTER_CUBIC)
+                
                 Us[s-1]/=nj#skaliram optični tok s faktorjem povečave
                 Vs[s-1]/=nj
-
-        return U[0],V[0]
+        for i in range(len(Us)):
+                print(i, Us[i])
+        return Us[0],Vs[0]
 
 
 '''
@@ -184,10 +189,42 @@ def f(I0,I1,alpha=15,eps=0.0001,nj=0.5, Nscales=5, Nwraps=5):
     gaussKernel = discreteGaussian2D(sigma)
 
     #zgladimo tako gosto kot je treba glede na nj (ta je sorazmeren stopnji piramidne decimacije)
-    Igladka=convolve(gaussKernel,I0)
+    Igladka=convolve(I0,gaussKernel)
     #bikubična interpolacija
     bicubicInterp(Igladka)
 
     #default vrednost parametra pri SOR relaksaciji
     w=1.9
 '''
+def HSOF(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter,w=1.9): #na eni skali
+        I2x,I2y=imageGradient(I2)
+        #iterativna aproksimacija (taylor)
+        Un=np.copy(U)
+        Vn=np.copy(V)
+        for n in range(Nwarps):
+                e=0
+                #warp (mogoče narobe računam!)
+                I2w=bicubicInterpolateGrayImage(I2,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)#popravi!!! mora biti bikubična
+                I2wx=bicubicInterpolateGrayImage(I2x,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)
+                I2wy=bicubicInterpolateGrayImage(I2y,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)
+
+                #SOR iteracije
+                r=0
+                error=1000
+                Unr=np.copy(Un)
+                Vnr=np.copy(Vn)
+                while(error>eps and  r<maxiter): #SOR  (Successive Over-Relaxation) ITERACIJA
+                        UnrOld=np.copy(Unr)
+                        VnrOld=np.copy(Vnr)
+                        r+=1
+                        Aunr=convolve(Unr,kernelAvg)
+                        Avnr=convolve(Vnr,kernelAvg)
+                        Unr=(1-w)*Unr+w*(np.multiply((I1-I2+np.multiply(I2x,Un)-np.multiply(I2y,(Vnr-Vn))),I2x)+alpha**2*Aunr)/(np.square(I2x)+alpha**2)
+                        Vnr=(1-w)*Vnr+w*(np.multiply((I1-I2+np.multiply(I2x,(Unr-Un))-np.multiply(I2y,Vn)),I2y)+alpha**2*Avnr)/(np.square(I2x)+alpha**2)
+                        #napaka konvergence
+                        error=np.square((Unr-UnrOld))+np.square((Vnr-VnrOld))
+                        error=np.sqrt(error,nx*ny)
+                Un=Unr
+                Vn=Vnr
+                e+=error
+        return error,U,V
