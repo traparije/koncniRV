@@ -2,6 +2,7 @@ import numpy as np
 import scipy.ndimage as ni
 from scipy.ndimage.filters import convolve
 import scipy.interpolate as si
+import cv2
 
 def discreteGaussian2D(iSigma):
     U = int(2*np.ceil(3*iSigma) +1)
@@ -89,6 +90,8 @@ def HSOF(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter): #na eni skali
             niter+=1
             error,U,V=SORiteration(Au,Av,D,Du,Dv,U,V,alpha**2)
             error=np.sqrt(error,nx*ny)
+        
+        return error,U,V
 
 
 def normalize_images(I1,I2):
@@ -106,10 +109,76 @@ def normalize_images(I1,I2):
         I2=255*(I2-labs*np.ones(I2.shape))/den
         return I1, I2
 
+def HSpiramida(I1,I2,alpha=15,eps=0.0001,nj=0.5, nScales=5, nWarps=5,maxiter=1000):
+        #alpha=utež pogoja gladkosti
+        ny,nx=I1.shape
+
+        #normaliziram 
+        I1s=[0 for i in range(nScales)]#ustvarim pravilno velik prazen seznam
+        I2s=[0 for i in range(nScales)]#ustvarim pravilno velik prazen seznam
+        Us=[0 for i in range(nScales)]#ustvarim pravilno velik prazen seznam
+        Vs=[0 for i in range(nScales)]#ustvarim pravilno velik prazen seznam
+        I1s[0],I2s[0]=normalize_images(I1,I2)
+        #zgladim
+        sigma0=0.6
+        sigma = sigma0*np.sqrt(nj**(-2)-1)
+        gaussKernel = discreteGaussian2D(sigma)
+        I1s[0]=convolve(gaussKernel,I1s[0])
+        I2s[0]=convolve(gaussKernel,I2s[0])
+
+
+
+
+        #inicializiram slike različnih skal
+        for s in range(1,nScales):
+                #downsampling
+
+                #novi shape
+                prejdy,prejdx=I1s[s-1].shape
+                novdy=int(prejdy*nj+0.5)
+                novdx=int(prejdx*nj+0.5)
+
+                #iz opencv si sposodim resize za hitrost
+                I1s[s]=cv2.resize(I1s[s-1], dsize=(novdy,novdx), interpolation=cv2.INTER_CUBIC)
+                I2s[s]=cv2.resize(I2s[s-1], dsize=(novdy,novdx), interpolation=cv2.INTER_CUBIC)
+                #po resizu še zgladim s sigma 0.6 gaussovim jedrom
+                I1s[s]=convolve(gaussKernel,I1s[s])
+                I2s[s]=convolve(gaussKernel,I2s[s])
+
+        #inicializacija U in V
+        U=np.zeros(I1s[nScales-1].shape)
+        Us[nScales-1]=U
+        V=np.zeros(I1s[nScales-1].shape)
+        Vs[nScales-1]=V
+
+        #piramidna aproksimacija optičenga toka po Horn-Schuncku:
+        for s in range(nScales-1,-1,1):
+                e,Utemp,Vtemp=HSOF(I1s[s],I2s[s],Us[s],Vs[s],I1s[s].shape[1],I1s[s].shape[0],alpha,nWarps,eps,maxiter)
+
+                if s==0:  #za zadnji scale še poračunam potem pa ne več
+                        break
+                #else: 
+                #upsample U in V
+                Us[s-1]=cv2.resize(Utemp, dsize=I1s[s-1].shape, interpolation=cv2.INTER_CUBIC)
+                Vs[s-1]=cv2.resize(Vtemp, dsize=I1s[s-1].shape, interpolation=cv2.INTER_CUBIC)
+                Us[s-1]/=nj#skaliram optični tok s faktorjem povečave
+                Vs[s-1]/=nj
+
+        return U[0],V[0]
+
+
+'''
+if __name__=="__main__":
+        HSpiramida()
+'''
+
+
+
+'''
 #mozno je razpoznati zamake na (1/nj)**(Nscale-1) pikslih. Pri defaultnih 0.5 nj in 5 Nscale, nam to da 16 px maneverskega prostora
 #NScales= -log(max_motion)/log(nj)+1
 def f(I0,I1,alpha=15,eps=0.0001,nj=0.5, Nscales=5, Nwraps=5):
-    '''nj med 0 in 1. 1 pomeni da ni downsamplinga'''
+    #nj med 0 in 1. 1 pomeni da ni downsamplinga
     sigma0=0.6
     sigma = sigma0*np.sqrt(nj**(-2)-1)
     gaussKernel = discreteGaussian2D(sigma)
@@ -121,3 +190,4 @@ def f(I0,I1,alpha=15,eps=0.0001,nj=0.5, Nscales=5, Nwraps=5):
 
     #default vrednost parametra pri SOR relaksaciji
     w=1.9
+'''
