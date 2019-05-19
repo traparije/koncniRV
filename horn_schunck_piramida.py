@@ -94,7 +94,7 @@ def HSOF1(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter): #na eni skali
 
                         niter+=1
                         error,U,V=SORiteration1(Au,Av,D,Du,Dv,U,V,alpha**2)
-                        error=np.sqrt(error,nx*ny)
+                        error=np.sqrt(error/nx*ny)
                 
         return error,U,V
 
@@ -195,30 +195,28 @@ def f(I0,I1,alpha=15,eps=0.0001,nj=0.5, Nscales=5, Nwraps=5):
     w=1.9
 '''
 def inefficientWarpNoInterp(I,U,V):
-        print('warp1')
+
         Iout=np.array(I)
         for y in range(I.shape[0]):
                 for x in range(I.shape[1]):
                         Iout[y][x]=I[max(0,int(round(y+U[y][x])))][max(0,int(round(x+V[y][x])))]
-        print('warp2')
         return Iout
 
 def HSOF(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter,w=1.9): #na eni skali
         I2=np.copy(I2)
         I2x,I2y=imageGradient(I2)
         #iterativna aproksimacija (taylor)
+        print("iteriram na skali",I2.shape)
         Un=np.copy(U)
         Vn=np.copy(V)
         for n in range(Nwarps):
                 e=0
+                print("wraping",n, "")
                 #warp (mogoče narobe računam!)
-                I2w=inefficientWarpNoInterp(I2,Un,Vn)
-                I2wx=inefficientWarpNoInterp(I2x,Un,Vn)
-                I2wy=inefficientWarpNoInterp(I2y,Un,Vn)
-                #I2w=bicubicInterpolateGrayImage(I2,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)
-                #I2wx=bicubicInterpolateGrayImage(I2x,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)
-                #I2wy=bicubicInterpolateGrayImage(I2y,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)
-
+                I2w=transformImage(I2,Un,Vn)
+                I2wx=transformImage(I2x,Un,Vn)
+                I2wy=transformImage(I2y,Un,Vn)
+                
                 #SOR iteracije
                 r=0
                 error=1000
@@ -242,3 +240,56 @@ def HSOF(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter,w=1.9): #na eni skali
         U=Un
         V=Vn
         return e,U,V
+
+
+def interpolate1Image2D( iImage, iCoorX, iCoorY ):
+    """Funkcija za interpolacijo prvega reda"""
+    # pretvori vhodne spremenljivke v np polje
+    iImage = np.asarray( iImage )    
+    iCoorX = np.asarray( iCoorX )
+    iCoorY = np.asarray( iCoorY )   
+    # preberi velikost slike in jedra
+    dy, dx = iImage.shape
+    # ustvari 2d polje koordinat iz 1d vhodnih koordinat (!!!)
+    if np.size(iCoorX) != np.size(iCoorY):
+        print('Stevilo X in Y koordinat je razlicno!')      
+        iCoorX, iCoorY = np.meshgrid(iCoorX, iCoorY, sparse=False, indexing='xy')
+    #------------------------------- za hitrost delovanja    
+    return si.interpn( (np.arange(dy),np.arange(dx)), iImage, \
+                      np.dstack((iCoorY,iCoorX)),\
+                      method='linear', bounds_error=False)\
+                      .astype( iImage.dtype )    
+               
+def transAffine2D( iScale=(1, 1), iTrans=(0, 0), iRot=0, iShear=(0, 0) ):
+    """Funkcija za poljubno 2D afino preslikavo"""    
+    iRot = iRot * np.pi / 180
+    oMatScale = np.matrix( ((iScale[0],0,0),(0,iScale[1],0),(0,0,1)) )
+    oMatTrans = np.matrix( ((1,0,iTrans[0]),(0,1,iTrans[1]),(0,0,1)) )
+    oMatRot = np.matrix( ((np.cos(iRot),-np.sin(iRot),0),\
+                          (np.sin(iRot),np.cos(iRot),0),(0,0,1)) )
+    oMatShear = np.matrix( ((1,iShear[0],0),(iShear[1],1,0),(0,0,1)) )
+    # ustvari izhodno matriko
+    oMat2D = oMatTrans * oMatShear * oMatRot * oMatScale
+    return oMat2D               
+               
+def transformImage( iImage, U,V):
+    """Preslikaj 2D sliko z linearno preslikavo"""
+    # ustvari diskretno mrezo tock
+    gx, gy = np.meshgrid( range(iImage.shape[1]), \
+                          range(iImage.shape[0]), \
+                          indexing = 'xy' )  
+
+    # ustvari Nx3 matriko vzorcnih tock                          
+    pts = np.vstack( (gx.flatten(), gy.flatten(), np.ones( (gx.size,))) ).transpose()
+    #print(pts)
+    pts1=np.copy(pts)
+    for i in range(len(pts)):
+        pts[i][0]+=U[int(pts1[i][0])][int(pts1[i][1])]
+        pts[i][1]+=V[int(pts1[i][0])][int(pts1[i][1])]
+    # preslikaj vzorcne tocke
+    # ustvari novo sliko z interpolacijo sivinskih vrednosti
+    oImage = interpolate1Image2D( iImage, \
+                                  pts[:,0].reshape( gx.shape ), \
+                                  pts[:,1].reshape( gx.shape ) )
+    oImage[np.isnan( oImage )] = 0
+    return oImage 
