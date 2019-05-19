@@ -50,6 +50,7 @@ def imageGradient( iImage ):
 kernelAvg = np.array([[1/12, 1/6, 1/12],
                         [1/6,    0, 1/6],
                         [1/12, 1/6, 1/12]], dtype=np.float32)
+
 def SORiteration1(Au,Av,D,Du,Dv,U,V,alpha,w=1.9):
     #parameter SOR
     uAvg=convolve(U,kernelAvg)
@@ -92,7 +93,7 @@ def HSOF1(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter): #na eni skali
                 while(error>eps and niter <maxiter):
 
                         niter+=1
-                        error,U,V=SORiteration(Au,Av,D,Du,Dv,U,V,alpha**2)
+                        error,U,V=SORiteration1(Au,Av,D,Du,Dv,U,V,alpha**2)
                         error=np.sqrt(error,nx*ny)
                 
         return error,U,V
@@ -153,11 +154,10 @@ def HSpiramida(I1,I2,alpha=15,eps=0.0001,nj=0.5, nScales=5, nWarps=5,maxiter=100
         Us[nScales-1]=U
         V=np.zeros(I1s[nScales-1].shape)
         Vs[nScales-1]=V
-        print(U, nScales)
         #piramidna aproksimacija optičenga toka po Horn-Schuncku:
         for s in range(nScales-1,-1,-1):
                 e,Utemp,Vtemp=HSOF(I1s[s],I2s[s],Us[s],Vs[s],I1s[s].shape[1],I1s[s].shape[0],alpha,nWarps,eps,maxiter)
-                print("s in  Utemp",s, Utemp)
+                #print("s in  Utemp",s, Utemp)
                 if s==0:  #za zadnji scale še poračunam potem pa ne več
                         break
                 #else: 
@@ -167,8 +167,6 @@ def HSpiramida(I1,I2,alpha=15,eps=0.0001,nj=0.5, nScales=5, nWarps=5,maxiter=100
                 
                 Us[s-1]/=nj#skaliram optični tok s faktorjem povečave
                 Vs[s-1]/=nj
-        for i in range(len(Us)):
-                print(i, Us[i])
         return Us[0],Vs[0]
 
 
@@ -196,7 +194,17 @@ def f(I0,I1,alpha=15,eps=0.0001,nj=0.5, Nscales=5, Nwraps=5):
     #default vrednost parametra pri SOR relaksaciji
     w=1.9
 '''
+def inefficientWarpNoInterp(I,U,V):
+        print('warp1')
+        Iout=np.array(I)
+        for y in range(I.shape[0]):
+                for x in range(I.shape[1]):
+                        Iout[y][x]=I[max(0,int(round(y+U[y][x])))][max(0,int(round(x+V[y][x])))]
+        print('warp2')
+        return Iout
+
 def HSOF(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter,w=1.9): #na eni skali
+        I2=np.copy(I2)
         I2x,I2y=imageGradient(I2)
         #iterativna aproksimacija (taylor)
         Un=np.copy(U)
@@ -204,9 +212,12 @@ def HSOF(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter,w=1.9): #na eni skali
         for n in range(Nwarps):
                 e=0
                 #warp (mogoče narobe računam!)
-                I2w=bicubicInterpolateGrayImage(I2,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)#popravi!!! mora biti bikubična
-                I2wx=bicubicInterpolateGrayImage(I2x,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)
-                I2wy=bicubicInterpolateGrayImage(I2y,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)
+                I2w=inefficientWarpNoInterp(I2,Un,Vn)
+                I2wx=inefficientWarpNoInterp(I2x,Un,Vn)
+                I2wy=inefficientWarpNoInterp(I2y,Un,Vn)
+                #I2w=bicubicInterpolateGrayImage(I2,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)
+                #I2wx=bicubicInterpolateGrayImage(I2x,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)
+                #I2wy=bicubicInterpolateGrayImage(I2y,np.arange(0,nx-1),np.arange(0,ny-1),'linear',0)
 
                 #SOR iteracije
                 r=0
@@ -218,12 +229,13 @@ def HSOF(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter,w=1.9): #na eni skali
                         VnrOld=np.copy(Vnr)
                         r+=1
                         Aunr=convolve(Unr,kernelAvg)
+                        #print("Anur",Aunr)
                         Avnr=convolve(Vnr,kernelAvg)
-                        Unr=(1-w)*Unr+w*(np.multiply((I1-I2+np.multiply(I2x,Un)-np.multiply(I2y,(Vnr-Vn))),I2x)+alpha**2*Aunr)/(np.square(I2x)+alpha**2)
-                        Vnr=(1-w)*Vnr+w*(np.multiply((I1-I2+np.multiply(I2x,(Unr-Un))-np.multiply(I2y,Vn)),I2y)+alpha**2*Avnr)/(np.square(I2x)+alpha**2)
+                        Unr=(1-w)*Unr+w*(np.multiply((I1-I2w+np.multiply(I2wx,Un)-np.multiply(I2wy,(Vnr-Vn))),I2wx)+alpha**2*Aunr)/(np.square(I2wx)+alpha**2)
+                        Vnr=(1-w)*Vnr+w*(np.multiply((I1-I2w-np.multiply(I2wx,(Unr-Un))+np.multiply(I2wy,Vn)),I2wy)+alpha**2*Avnr)/(np.square(I2wy)+alpha**2)
                         #napaka konvergence
                         error=np.square((Unr-UnrOld))+np.square((Vnr-VnrOld))
-                        error=np.sqrt(error,nx*ny)
+                        error=np.sum(np.sqrt(error/nx*ny))
                 Un=Unr
                 Vn=Vnr
                 e+=error
