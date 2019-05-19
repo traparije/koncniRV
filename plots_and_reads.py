@@ -71,6 +71,7 @@ def genImgsIntoArray(path_with_name,filetype,N):
         slika = Image.open(p).convert('L') #sivinska slika
         yield np.array(slika,dtype=np.float32)
 
+
 def quiverOnImage(u, v, iImage, scale=3, step=5, iTitle=None):
     """
     makes quiver

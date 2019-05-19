@@ -279,6 +279,8 @@ def transformImage( iImage, U,V):
                           range(iImage.shape[0]), \
                           indexing = 'xy' )  
 
+
+
     # ustvari Nx3 matriko vzorcnih tock                          
     pts = np.vstack( (gx.flatten(), gy.flatten(), np.ones( (gx.size,))) ).transpose()
     #print(pts)

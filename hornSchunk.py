@@ -48,6 +48,7 @@ def HornSchunck(I0,I1,lamb=0.1,Niter=9,eps=0.0001):
 
         #izracun odvodov
 
+
         Ix=convolve(I0,kernelX,mode='nearest') + convolve(I1,kernelX,mode='nearest')
         Iy=convolve(I0,kernelY,mode='nearest') + convolve(I1,kernelY,mode='nearest')
         It=convolve(I0,kernelT,mode='nearest') + convolve(I1,-kernelT,mode='nearest')
