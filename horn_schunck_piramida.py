@@ -227,4 +227,6 @@ def HSOF(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter,w=1.9): #na eni skali
                 Un=Unr
                 Vn=Vnr
                 e+=error
-        return error,U,V
+        U=Un
+        V=Vn
+        return e,U,V
