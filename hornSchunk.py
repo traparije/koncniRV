@@ -19,7 +19,7 @@ kernelX = np.array([[-1, 1],
 kernelY = np.array([[-1, -1],
                         [1, 1]]) *(1/4)
 
-kernelT = np.array([[-1, -1],
+kernelT = np.array([[1, 1],
                         [1, 1]]) *(1/4)
 
 def normalize(v):
