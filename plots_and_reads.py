@@ -84,5 +84,7 @@ def quiverOnImage(u, v, iImage, scale=3, step=5, iTitle=None):
                      head_width=0.5, head_length=1) #navadni quiverplot mi ni sluzil dobro, zato sem ga spisal na roke
     if iTitle:
         ax.set_title(iTitle)
+        
+        
     plt.draw()
     plt.show()
