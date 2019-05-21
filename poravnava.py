@@ -8,11 +8,11 @@ import numpy as np
 from horn_schunck_piramida import HSpiramida
 import scipy as si
 oPar=[1,0.2]
-imgFix = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/ulica.jpg').convert('L'), dtype=np.float32) #sivinska slika
-iImgMov = transformImage(imgFix, transAffine2D(iTrans = oPar))
+#imgFix = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/ulica.jpg').convert('L'), dtype=np.float32) #sivinska slika
+#iImgMov = transformImage(imgFix, transAffine2D(iTrans = oPar))
 
-#imgFix = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/a.png').convert('L'), dtype=np.float32) #sivinska slika
-#iImgMov = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/b.png').convert('L'), dtype=np.float32) #sivinska slika
+imgFix = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/a.png').convert('L'), dtype=np.float32) #sivinska slika
+iImgMov = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/b.png').convert('L'), dtype=np.float32) #sivinska slika
 im1=imgFix
 im2=iImgMov
 #showImage(imgFix)
@@ -21,13 +21,14 @@ im2=iImgMov
 #imgFix = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/taxi0.bmp').convert('L'), dtype=np.float32)
 #iImgMov = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/taxi1.bmp').convert('L'), dtype=np.float32)
 #print(np.array(iImgMov))
-u,v=HornSchunck(imgFix,iImgMov,0.1,100)
+#u,v=HornSchunck(imgFix,iImgMov,0.1,100)
 #parInv=(si.median(u),si.median(v)) #parametri inverzne preslikave, mediana ni ok
 
 
 
-#u,v=HSpiramida(imgFix,iImgMov,alpha=100,eps=0.0001,nj=0.5,nScales=5,nWarps=10,maxiter=150)
-#print('u',u,u.shape)
+u,v=HSpiramida(imgFix,iImgMov,alpha=0.3,eps=0.0001,nj=0.5,nScales=5,nWarps=10,maxiter=150)
+print('u',u,u.shape)
+
 quiverOnImage(u,v,imgFix,scale=1,step=10)
 optFlowColorVisualisation(u,v,imgFix) #še ne dela ok.
 nbins=1000
@@ -48,15 +49,16 @@ plt.show()
 
 import cv2
 #
-flow=np.array(np.dstack((u,v)),dtype=np.float32)
-def warp_flow(img, flow):
+
+def warp_flow(img, u,v):
+    flow=np.array(np.dstack((u,v)),dtype=np.float32)
     h, w = flow.shape[:2]
-    flow = -flow
+    flow = np.multiply(-1,flow)
     flow[:,:,0] += np.arange(w)
     flow[:,:,1] += np.arange(h)[:,np.newaxis]
     res = cv2.remap(img, flow, None, cv2.INTER_CUBIC)
     return res
-im2w = warp_flow(im1, flow)
+im2w = warp_flow(im1, u,v)
 
 plt.figure()
 plt.imshow(im2w)

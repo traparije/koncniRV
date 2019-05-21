@@ -4,7 +4,14 @@ from scipy.ndimage.filters import convolve
 import scipy.interpolate as si
 import cv2
 from funkcije import showImage
-
+def warp_flow(img, u,v):
+    flow=np.array(np.dstack((u,v)),dtype=np.float32)
+    h, w = flow.shape[:2]
+    flow = np.multiply(-1,flow)
+    flow[:,:,0] += np.arange(w)
+    flow[:,:,1] += np.arange(h)[:,np.newaxis]
+    res = cv2.remap(img, flow, None, cv2.INTER_CUBIC)
+    return res
 
 
 def discreteGaussian2D(iSigma):
@@ -18,7 +25,7 @@ def discreteGaussian2D(iSigma):
     return oKernel/np.sum(oKernel)
 
 #
-def bicubicInterpolateGrayImage( iImage, iCoorX, iCoorY, method,fill ):
+def bicubicInterpolateGrayImage( iImage, iCoorX, iCoorY, method,fill ): #fail
     dy, dx = iImage.shape
     return si.interpn((np.arange(dy), np.arange(dx)), 
                           iImage,
@@ -26,7 +33,7 @@ def bicubicInterpolateGrayImage( iImage, iCoorX, iCoorY, method,fill ):
                           method=method,
                           bounds_error=False,fill_value=fill).astype('uint8')
 
-def bicubicInterpolateColorImage( iImage, iCoorX, iCoorY, method ):
+def bicubicInterpolateColorImage( iImage, iCoorX, iCoorY, method ): #fail
     dy, dx, dz = iImage.shape
     return si.interpn((np.arange(dy), np.arange(dx)), 
                           iImage,
@@ -213,9 +220,12 @@ def HSOF(I1,I2,U,V,nx,ny,alpha,Nwarps,eps,maxiter,w=1.9): #na eni skali
                 e=0
                 print("wraping",n, "")
                 #warp (mogoče narobe računam!)
-                I2w=transformImage(I2,Un,Vn)
-                I2wx=transformImage(I2x,Un,Vn)
-                I2wy=transformImage(I2y,Un,Vn)
+                I2w=warp_flow(I2,U,V)
+                I2wx=warp_flow(I2,U,V)
+                I2wy=warp_flow(I2w,U,V)
+                #I2w=transformImage(I2,Un,Vn)
+                #I2wx=transformImage(I2x,Un,Vn)
+                #I2wy=transformImage(I2y,Un,Vn)
                 
                 #SOR iteracije
                 r=0
