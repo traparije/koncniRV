@@ -29,6 +29,7 @@ def normalize(v):
 
 
 
+
 def HornSchunck(I0,I1,lamb=0.1,Niter=9,eps=0.0001):
         """
         I0: slika ob t=0
