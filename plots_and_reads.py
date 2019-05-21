@@ -66,8 +66,8 @@ def genImgsIntoArray(path_with_name,filetype,N):
     '''
     Generator za slike z diska  
     '''
-    for znj in range(N):
-        p="{}{}.{}".format(path_with_name,znj,filetype)
+    for znj in range(1,N+1):
+        p="{}{:04}.{}".format(path_with_name,znj,filetype)
         slika = Image.open(p).convert('L') #sivinska slika
         yield np.array(slika,dtype=np.float32)
 
