@@ -7,7 +7,7 @@ from plots_and_reads import quiverOnImage,optFlowColorVisualisation
 import numpy as np
 from horn_schunck_piramida import HSpiramida
 import scipy as si
-oPar=[5,0]
+oPar=[5,5]
 imgFix = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/a.png').convert('L'), dtype=np.float32) #sivinska slika
 iImgMov = transformImage(imgFix, transAffine2D(iTrans = oPar))
 
@@ -46,31 +46,3 @@ plt.show()
 print(parInv)
 plt.show()
 #print('end')
-
-
-import cv2
-#
-
-def warp_flow(img, u,v):
-    flow=np.array(np.dstack((u,v)),dtype=np.float32)
-    h, w = flow.shape[:2]
-    flow = np.multiply(-1,flow)
-    flow[:,:,0] += np.arange(w)
-    flow[:,:,1] += np.arange(h)[:,np.newaxis]
-    res = cv2.remap(img, flow, None, cv2.INTER_CUBIC)
-    return res
-im2w = warp_flow(im1, u,v)
-
-plt.figure()
-plt.imshow(im2w)
-plt.show()
-plt.figure()
-plt.imshow(im2)
-plt.show()
-plt.figure()
-plt.imshow(im1)
-plt.show()
-plt.figure()
-
-plt.imshow(im2-im2w)
-plt.show()

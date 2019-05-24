@@ -166,7 +166,3 @@ if (__name__=='__main__'):
     showImage(bicubicInterpolateWarp(i1,u,v))
     from plots_and_reads import quiverOnImage
     quiverOnImage(u,v,i1,scale=1,step=10)
-
-
-def sor():
-    pass
