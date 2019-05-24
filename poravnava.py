@@ -46,3 +46,4 @@ plt.show()
 print(parInv)
 plt.show()
 #print('end')
+#?
