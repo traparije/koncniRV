@@ -308,10 +308,8 @@ def interpn(ti, t, f, order=1, **kwargs):
     return map_coordinates(f, np.asarray(tind), order=order, **kwargs)
 
 
-import rvlib
 from PIL import Image
 a=np.array(Image.open('a.png').convert('L'))
-rvlib.showImage(a)
 dy,dx=a.shape
 print(dy)
 
@@ -329,5 +327,3 @@ ax = fig.add_subplot(111, projection='3d')
 ax.plot_wireframe(X, Y, f, color='r', label='vzorčne točke')
 ax.plot_wireframe(Xi, Yi, fi, color='g', label='interpolirane vrednosti')
 ax.legend()
-rvlib.showImage(f)
-rvlib.showImage(fi)
