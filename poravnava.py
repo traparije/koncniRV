@@ -17,7 +17,7 @@ im1=imgFix
 im2=iImgMov
 #showImage(imgFix)
 #showImage(iImgMov)
-#u,v=HornSchunck(imgFix,iImgMov,0.2,9)
+u,v=HornSchunck(imgFix,iImgMov,0.2,9)
 #imgFix = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/taxi0.bmp').convert('L'), dtype=np.float32)
 #iImgMov = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/taxi1.bmp').convert('L'), dtype=np.float32)
 #print(np.array(iImgMov))
@@ -26,7 +26,7 @@ im2=iImgMov
 
 
 
-u,v=HSpiramida(imgFix,iImgMov,alpha=0.3,eps=0.0001,nj=0.5,nScales=5,nWarps=10,maxiter=150)
+#u,v=HSpiramida(imgFix,iImgMov,alpha=0.3,eps=0.0001,nj=0.5,nScales=5,nWarps=10,maxiter=150)
 print('u',u,u.shape)
 
 quiverOnImage(u,v,imgFix,scale=1,step=10)
