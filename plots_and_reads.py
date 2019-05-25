@@ -196,7 +196,7 @@ def optFlowColorVisualisation(u,v,iImage):
     #s = np.divide( (dolz-np.amin(dolz)),(np.amax(dolz)-np.amin(dolz)))
     #s[np.isnan( s )] = 0
     s = np.ones(iImage.shape)
-    s = cv2.normalize(dolz, None, 0, 1, cv2.NORM_MINMAX)
+    #s = cv2.normalize(dolz, None, 0, 1, cv2.NORM_MINMAX)
     v = np.ones(iImage.shape) #value naj bo vedno 1
     iRGB=convertHSV2RGB(np.dstack((h,s,v)))
     plt.figure()
