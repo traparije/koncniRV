@@ -1,8 +1,6 @@
 from scipy.ndimage.filters import convolve
 import numpy as np
-
 from interpolacija import interpn
-
 from funkcije import showImage
 import cv2
 import scipy.ndimage as ni
@@ -11,15 +9,6 @@ kernelAvg = np.array([[1/12, 1/6, 1/12],
                         [1/6,    0, 1/6],
                         [1/12, 1/6, 1/12]], dtype=np.float32)
 
-
-kernelX = np.array([[-1, 1],
-                        [-1, 1]])*(1/4)
-
-kernelY = np.array([[-1, -1],
-                        [1, 1]]) *(1/4)
-
-kernelT = np.array([[1, 1],
-                        [1, 1]]) *(1/4)
 def discreteGaussian2D(iSigma):
     U = int(2*np.ceil(3*iSigma) +1)
     V = U
@@ -36,7 +25,7 @@ def bicubicInterpolateWarp(I2,U,V):
     dy,dx=I2.shape
     x = np.arange(0, dx, 1)
     y = np.arange(0, dy, 1)
-    Y, X = np.meshgrid(y, x, indexing='ij')  #tocke prej
+    #Y, X = np.meshgrid(y, x, indexing='ij')  #tocke prej
     f = I2
     xi = np.arange(0, dx, 1.0)
     yi = np.arange(0, dy, 1.0)
@@ -54,7 +43,7 @@ def upscaleDownscaleInterp(I,nj):
     dy,dx=I.shape
     x = np.arange(0, dx, 1)
     y = np.arange(0, dy, 1)
-    Y, X = np.meshgrid(y, x, indexing='ij')  #tocke prej
+    #Y, X = np.meshgrid(y, x, indexing='ij')  #tocke prej
     f = I
     xi = np.arange(0, dx, 1/nj)
     yi = np.arange(0, dy, 1/nj)
@@ -63,15 +52,15 @@ def upscaleDownscaleInterp(I,nj):
     return fi
 
 def imageGradient( iImage ):
-    """Gradient slike s Sobelovim operatorjem"""
+    """Gradient slike s centralnimi diferencami"""
     iImage = np.array( iImage, dtype='float' )    
-    iSobel = np.array( ((0,0,0),(-1,0,1),(0,0,0)) )    
+    iSobel = np.array( ((0,0,0),(-1,0,1),(0,0,0)) )     #ni dejansko Sobel, je samo centralna diferenca.
     oGx = ni.convolve( iImage, iSobel, mode='constant' )
     oGy = ni.convolve( iImage, np.transpose( iSobel ), mode='constant' )
     return oGx, oGy
 
 
-def HSOF(I1,I2,U,V,alpha,eps,Nmaxiter,Nwarps, w=1):
+def HSOF(I1,I2,U,V,alpha,eps,Nmaxiter,Nwarps):
 
     #compute I2x,I2y
     #I2x=convolve(I1,kernelX,mode='nearest') + convolve(I2,kernelX,mode='nearest')
@@ -95,17 +84,17 @@ def HSOF(I1,I2,U,V,alpha,eps,Nmaxiter,Nwarps, w=1):
             Vk=np.copy(V)
             Au=convolve(U,kernelAvg,mode='nearest')
             Av=convolve(V,kernelAvg,mode='nearest')
-            Utmp=(1-w)*Uk + w*((I1-I2w+I2xw*Un-I2yw*(V-Vn))*I2xw+alpha**2*Au)/(np.square(I2xw)+alpha**2)
-            Vtmp=(1-w)*Vk + w*((I1-I2w-I2xw*(U-Un)+I2yw*Vn)*I2yw+alpha**2*Av)/(np.square(I2yw)+alpha**2)
+            Utmp=((I1-I2w+I2xw*Un-I2yw*(V-Vn))*I2xw+alpha**2*Au)/(np.square(I2xw)+alpha**2)
+            Vtmp=((I1-I2w-I2xw*(U-Un)+I2yw*Vn)*I2yw+alpha**2*Av)/(np.square(I2yw)+alpha**2)
             U=Utmp
             V=Vtmp
             #compute stopping criterion
-            stopCirt=1/np.size(I2)*np.sum( np.square((U-Uk))+ np.square((V-Vk)))
+            stopCrit=1/np.size(I2)*np.sum( np.square((U-Uk))+ np.square((V-Vk)))
             r=r+1
     return U,V
 
 
-def piramidna2(I1,I2,alpha,eps,nj,Nmaxiter,Nwarps,Nscales):
+def HornSchunckPiramidna(I1,I2,alpha,eps,nj,Nmaxiter,Nwarps,Nscales):
 
     #normalize I1, I2 between 0 and 255 (ni treba, je že taka vhodna slika)
 
@@ -162,7 +151,7 @@ if (__name__=='__main__'):
     i1 = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/a.png').convert('L'), dtype=np.float64) #sivinska slika
     i2 = np.array(Image.open('C:/RV/KoncniProjekt/koncniRV/Frames/b.png').convert('L'), dtype=np.float64) #sivinska slikaž
     showImage(i1)
-    u,v=piramidna2(i1,i2,7,0.001,0.5,100,10,5)
+    u,v=HornSchunckPiramidna(i1,i2,7,0.001,0.5,100,10,5)
     print(u,v)
     showImage(bicubicInterpolateWarp(i1,u,v))
     from plots_and_reads import quiverOnImage

@@ -5,9 +5,8 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import hist2d
 from plots_and_reads import quiverOnImage,optFlowColorVisualisation,genImgsIntoArray
 import numpy as np
-from horn_schunck_piramida import HSpiramida
 import scipy as si
-from piramidna_poskus2 import piramidna2,bicubicInterpolateWarp
+from HS_piramidna import HornSchunckPiramidna,bicubicInterpolateWarp
 invPar=np.array([0,0])
 
 gen=genImgsIntoArray('C:/VideosRV/img','png',31)
@@ -25,11 +24,11 @@ for img in gen:
     #u,v=HornSchunck(I0,I1,0.1,100)
     #showImage(I0)
     #showImage(I1)
-    u,v=piramidna2(I0,I1,7,0.001,0.5,150,10,5)
+    u,v=HornSchunckPiramidna(I0,I1,7,0.001,0.5,150,10,5)
     # print(np.median(u.flatten())) #večina pikslov se verjetno premakne za toliko po x
     # print(np.median(v.flatten())) #večina pikslov se verjerno premakne za toliko po y
-    #quiverOnImage(u,v,I0,scale=1,step=10)
-    #optFlowColorVisualisation(u,v,I0) 
+    quiverOnImage(u,v,I0,scale=1,step=10)
+    optFlowColorVisualisation(u,v,I0) 
 
     #nbins=1000
     #razpon=(-15,15)
@@ -43,7 +42,7 @@ for img in gen:
     UFix=uMed*np.ones(I1.shape)
     VFix=vMed*np.ones(I1.shape)
     #saveImage('C:/VideosRV/imgfixed{}'.format(i+1),bicubicInterpolateWarp(I1,uskup,vskup),'png')
-    saveImage('C:/VideosRV/imgfixed{}'.format(i+1),bicubicInterpolateWarp(I1,UFix,VFix),'png')
+    #saveImage('C:/VideosRV/imgfixed{}'.format(i+1),bicubicInterpolateWarp(I1,UFix,VFix),'png')
     #saveImage('C:/VideosRV/imgfixed{}'.format(i+1),iBack,'png')
     I0=I1
 

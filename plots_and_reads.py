@@ -10,7 +10,7 @@ def convertToGray(image):
     rgb = np.array(image, dtype='float')
     gray = rgb[:, :, 0]*0.299 + rgb[:, :, 1]*0.587 + rgb[:, :, 2]*0.114
     return gray.astype(dtype)
-
+'''
 def read_pgm(filename, byteorder='>'): #vir stackoverflow https://stackoverflow.com/questions/7368739/numpy-and-16-bit-pgm
     """Return image data from a raw PGM file as numpy array.
 
@@ -33,7 +33,7 @@ def read_pgm(filename, byteorder='>'): #vir stackoverflow https://stackoverflow.
                             count=int(width)*int(height),
                             offset=len(header)
                             ).reshape((int(height), int(width))), dtype='float'))
-
+'''
 
 def showImage(iImage, iTitle=''):
     '''
@@ -74,7 +74,7 @@ def genImgsIntoArray(path_with_name,filetype,N):
 
 def quiverOnImage(u, v, iImage, scale=3, step=5, iTitle=None):
     """
-    makes quiver
+    na novo napisan quiver plot, da lahko rišem bolj na redko
     """
     ax = plt.figure().gca()
     ax.imshow(iImage, cmap='gray', origin='upper')
@@ -187,6 +187,12 @@ def window_middle80_parameters(image):
 
 import cv2
 def optFlowColorVisualisation(u,v,iImage):
+    '''
+    Vizualizacja optičnega toka z barvami.
+    Polarni kot in dolžina vektroja optičnega toka (u,v) določata h in s kanal hsv
+
+    '''
+
     #u, v v kot in dolz
     iImage=np.array(iImage)
     kot=np.arctan2(v,u)/np.pi*180 +180

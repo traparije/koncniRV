@@ -1,3 +1,6 @@
+##Horn Schunck piksel po piksel. Izredno počasno
+
+
 import numpy as np
 from PIL import Image
 
