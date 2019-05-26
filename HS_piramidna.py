@@ -62,9 +62,7 @@ def imageGradient( iImage ):
 
 def HSOF(I1,I2,U,V,alpha,eps,Nmaxiter,Nwarps):
 
-    #compute I2x,I2y
-    #I2x=convolve(I1,kernelX,mode='nearest') + convolve(I2,kernelX,mode='nearest')
-    #I2y=convolve(I1,kernelY,mode='nearest') + convolve(I2,kernelY,mode='nearest')
+    #izracun odvodov
     I2x,I2y=imageGradient(I2)
 
     for n in range(1,Nwarps+1):

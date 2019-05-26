@@ -81,7 +81,7 @@ def quiverOnImage(u, v, iImage, scale=3, step=5, iTitle=None):
     for i in range(0, u.shape[0], step):
         for j in range(0, v.shape[1], step):
             ax.arrow(j, i, v[i, j]*scale, u[i, j]*scale, color='red',
-                     head_width=0.5, head_length=1) #navadni quiverplot mi ni sluzil dobro, zato sem ga spisal na roke
+                     head_width=1.5, head_length=1) #navadni quiverplot mi ni sluzil dobro, zato sem ga spisal na roke
     if iTitle:
         ax.set_title(iTitle)
         
