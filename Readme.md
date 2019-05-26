@@ -1,2 +1,3 @@
-Klasicni Horn-Schunck dela o.k. na dovolj enostavnih slikah (umetno narejena slika prej.png in potem.png).
-Piramidni ne dela. V kodi je zmeda, ker sem testiral mnogo možnih rešitev
+Optični tok po metodi Horn-Schunck
+
+datoteka hornSchunk.py vsebuje funkcijo HornSchunck, ki izračuna optični tok med dvema slikama po klasični metodi Horn-Schunck. 

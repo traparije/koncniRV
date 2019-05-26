@@ -91,15 +91,16 @@ def HSOF(I1,I2,U,V,alpha,eps,Nmaxiter,Nwarps, w=1):
         while (r<Nmaxiter) and stopCrit>eps:
             #print(U)
             #compute A(u) , A(v)
-            Uk=U
-            Vk=V
+            Uk=np.copy(U)
+            Vk=np.copy(V)
             Au=convolve(U,kernelAvg,mode='nearest')
             Av=convolve(V,kernelAvg,mode='nearest')
             Utmp=(1-w)*Uk + w*((I1-I2w+I2xw*Un-I2yw*(V-Vn))*I2xw+alpha**2*Au)/(np.square(I2xw)+alpha**2)
             Vtmp=(1-w)*Vk + w*((I1-I2w-I2xw*(U-Un)+I2yw*Vn)*I2yw+alpha**2*Av)/(np.square(I2yw)+alpha**2)
             U=Utmp
             V=Vtmp
-            stopCrit=1 #compute stopping criterion
+            #compute stopping criterion
+            stopCirt=1/np.size(I2)*np.sum( np.square((U-Uk))+ np.square((V-Vk)))
             r=r+1
     return U,V
 
