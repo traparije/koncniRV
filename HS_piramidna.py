@@ -104,6 +104,7 @@ def HornSchunckPiramidna(I1,I2,alpha,eps,nj,Nmaxiter,Nwarps,Nscales):
     '''
     Ocena optičnega toka po metodi Horn-Schunck z uporabo piramidne sheme
 
+    Tok se izračuna v smeri iz 2 v 1
     '''
 
 

@@ -8,7 +8,7 @@ import numpy as np
 from HS_piramidna import HornSchunckPiramidna,bicubicInterpolateWarp
 #invPar=np.array([0,0])
 
-gen=genImgsIntoArray('C:/VideosRV/img','png',31)
+gen=genImgsIntoArray('C:/koncniRV/Rezultati/avto/img','png',24)
 I0=next(gen)
 
 i=0
@@ -24,8 +24,8 @@ for img in gen:
 
     u,v=HornSchunckPiramidna(I0,I1,7,0.001,0.5,150,10,5)
     
-    #quiverOnImage(u,v,I0,scale=1,step=10) #odkomentirajte če želite sprotni prikaz
-    #optFlowColorVisualisation(u,v,I0) #odkomentirajte če želite sprotni prikaz
+    quiverOnImage(u,v,I0,scale=1,step=10,showOrSave='save',path='C:/koncniRV/Rezultati/avto/imgQuiver{}'.format(i)) #spremenite showOrSave v show če želite sprotni prikaz
+    optFlowColorVisualisation(u,v,I0,showOrSave='save',path='C:/koncniRV/Rezultati/avto/imgHSV{}'.format(i)) #spremenite showOrSave v show če želite sprotni prikaz
 
     '''
     ena izmed idej: iz 2d histograma izločiti kateri koši so najbolj zastopani in to uporabiti za oceno premika slike.
