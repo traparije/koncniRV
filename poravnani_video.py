@@ -8,7 +8,7 @@ import numpy as np
 from HS_piramidna import HornSchunckPiramidna,bicubicInterpolateWarp
 #invPar=np.array([0,0])
 
-gen=genImgsIntoArray('C:/VideosRV/img','png',31)
+gen=genImgsIntoArray('C:\koncniRV\Rezultati\avto\img','png',31)
 I0=next(gen)
 
 i=0

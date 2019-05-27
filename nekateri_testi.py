@@ -7,14 +7,14 @@ from plots_and_reads import quiverOnImage,optFlowColorVisualisation,genImgsIntoA
 import numpy as np
 from HS_piramidna import HornSchunckPiramidna,bicubicInterpolateWarp
 
-I0=np.array(Image.open('C:/koncniRV/Rezultati/img0004.png').convert('L'),dtype=np.float32)
-I1=np.array(Image.open('C:/koncniRV/Rezultati/img0005.png').convert('L'),dtype=np.float32)
+I0=np.array(Image.open('C:/koncniRV/Rezultati/avto/img0018.png').convert('L'),dtype=np.float32)
+I1=np.array(Image.open('C:/koncniRV/Rezultati/avto/img0019.png').convert('L'),dtype=np.float32)
 
 #u,v=HornSchunck(I0,I1,0.1,100)
 #showImage(I0)
 #showImage(I1)
 #u,v=HornSchunckPiramidna(I0,I1,7,0.0001,0.5,150,10,5)
-u,v=HornSchunckPiramidna(I0,I1,7,0.01,0.65,150,15,5)
+u,v=HornSchunckPiramidna(I0,I1,7,0.01,0.5,150,15,5)
 # print(np.median(u.flatten())) #večina pikslov se verjetno premakne za toliko po x
 # print(np.median(v.flatten())) #večina pikslov se verjerno premakne za toliko po y
 quiverOnImage(u,v,I0,scale=3,step=20)
